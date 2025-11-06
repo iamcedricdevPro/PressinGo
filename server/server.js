@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import connectMongo from "./config/mongo.js";
+import ordersModule from "./routes/orders.js";
 
 dotenv.config();
 
@@ -137,7 +138,9 @@ async function main() {
 	});
 
 	// Orders routes
-	const ordersRouter = require('./routes/orders')(state, { requireAdmin });
+	
+const ordersRouter = ordersModule(state, { requireAdmin });
+app.use("/api/orders", ordersRouter);
 	app.use('/api/orders', ordersRouter);
 
 	// SSE stream for notifications
