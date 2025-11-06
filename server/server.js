@@ -1,18 +1,31 @@
 import dotenv from "dotenv";
 import express from "express";
-import mongoose from "mongoose";
+import cors from "cors";
+import bodyParser from "body-parser";
 import connectMongo from "./config/mongo.js";
 
 dotenv.config();
 
-const express = require('express');
-const cors = require('cors');
-const { connectMongo } = require('./config/mongo');
-const webpush = require('web-push');
-const Subscription = require('./models/Subscription');
-const { initFirebaseAdmin } = require('./config/firebase');
-const FcmToken = require('./models/FcmToken');
-const jwt = require('jsonwebtoken');
+const app = express();
+
+// Middlewares
+app.use(cors());
+app.use(bodyParser.json());
+
+// Connexion MongoDB
+connectMongo();
+
+// Route test
+app.get("/", (req, res) => {
+  res.send("🚀 PressinGo API en ligne !");
+});
+
+// Port dynamique pour Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Serveur démarré sur le port ${PORT}`);
+});
+
 
 // Tarifs par défaut (modifiable via endpoint /api/pricing)
 const defaultPricing = {
