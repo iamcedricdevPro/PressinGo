@@ -1,32 +1,15 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
+import jwt from "jsonwebtoken";
+import webpush from "web-push";
 import connectMongo from "./config/mongo.js";
 import ordersModule from "./routes/orders.js";
+import Subscription from "./models/Subscription.js";
+import FcmToken from "./models/FcmToken.js";
+import { initFirebaseAdmin } from "./config/firebase.js";
 
 dotenv.config();
-
-const app = express();
-
-// Middlewares
-app.use(cors());
-app.use(bodyParser.json());
-
-// Connexion MongoDB
-connectMongo();
-
-// Route test
-app.get("/", (req, res) => {
-  res.send("🚀 PressinGo API en ligne !");
-});
-
-// Port dynamique pour Render
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Serveur démarré sur le port ${PORT}`);
-});
-
 
 // Tarifs par défaut (modifiable via endpoint /api/pricing)
 const defaultPricing = {
@@ -138,9 +121,7 @@ async function main() {
 	});
 
 	// Orders routes
-	
-const ordersRouter = ordersModule(state, { requireAdmin });
-app.use("/api/orders", ordersRouter);
+	const ordersRouter = ordersModule(state, { requireAdmin });
 	app.use('/api/orders', ordersRouter);
 
 	// SSE stream for notifications
