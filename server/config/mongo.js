@@ -1,12 +1,11 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-async function connectMongo() {
-	const uri = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/pressingo';
-	mongoose.set('strictQuery', true);
-	await mongoose.connect(uri, { autoIndex: true });
-	return mongoose.connection;
-}
-
-module.exports = { connectMongo };
-
-
+export const connectMongo = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("✅ Connected to MongoDB Atlas");
+  } catch (err) {
+    console.error("❌ MongoDB connection error:", err.message);
+    process.exit(1);
+  }
+};
