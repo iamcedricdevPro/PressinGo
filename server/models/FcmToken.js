@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const FcmTokenSchema = new mongoose.Schema(
 	{
@@ -9,6 +9,6 @@ const FcmTokenSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-module.exports = mongoose.model('FcmToken', FcmTokenSchema);
+const FcmToken = mongoose.model('FcmToken', FcmTokenSchema);
 
-
+export default FcmToken;
