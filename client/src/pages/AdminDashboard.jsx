@@ -13,6 +13,9 @@ export default function AdminDashboard() {
 	const [pricing, setPricing] = useState(null);
 	const [deliveryFee, setDeliveryFee] = useState(1000);
 	const [savingPricing, setSavingPricing] = useState(false);
+	const [showPasswordModal, setShowPasswordModal] = useState(false);
+	const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+	const [changingPassword, setChangingPassword] = useState(false);
 
 	useEffect(() => {
 		const saved = sessionStorage.getItem('admin_token');
@@ -139,6 +142,40 @@ export default function AdminDashboard() {
 		}
 	};
 
+	const changePassword = async () => {
+		if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+			toast?.error('Les mots de passe ne correspondent pas');
+			return;
+		}
+		if (passwordForm.newPassword.length < 4) {
+			toast?.error('Le mot de passe doit contenir au moins 4 caractères');
+			return;
+		}
+		setChangingPassword(true);
+		try {
+			const res = await fetch('/api/admin/change-password', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+				body: JSON.stringify({
+					oldPassword: passwordForm.oldPassword,
+					newPassword: passwordForm.newPassword
+				}),
+			});
+			if (res.ok) {
+				toast?.success('Mot de passe modifié avec succès');
+				setShowPasswordModal(false);
+				setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+			} else {
+				const data = await res.json();
+				toast?.error(data.error || 'Erreur lors du changement de mot de passe');
+			}
+		} catch (e) {
+			toast?.error('Erreur lors du changement de mot de passe');
+		} finally {
+			setChangingPassword(false);
+		}
+	};
+
 	if (!authed) {
 		let pwd = '';
 		const doLogin = async () => {
@@ -217,7 +254,8 @@ export default function AdminDashboard() {
 					{STATUS.map((s) => <option key={s} value={s}>{s}</option>)}
 				</select>
 				<button onClick={exportCSV} className="border px-3 py-2 rounded">Exporter CSV</button>
-                <button onClick={() => { sessionStorage.removeItem('admin_token'); setAuthed(false); setToken(''); toast?.info('Déconnecté'); }} className="px-3 py-2 rounded border hover:bg-gray-50">Déconnexion</button>
+				<button onClick={() => setShowPasswordModal(true)} className="px-3 py-2 rounded border hover:bg-gray-50">Changer mot de passe</button>
+				            <button onClick={() => { sessionStorage.removeItem('admin_token'); setAuthed(false); setToken(''); toast?.info('Déconnecté'); }} className="px-3 py-2 rounded border hover:bg-gray-50">Déconnexion</button>
 			</div>
 
             <div className="overflow-x-auto border rounded">
@@ -267,6 +305,59 @@ export default function AdminDashboard() {
 					</tbody>
 				</table>
 			</div>
+
+			{/* Modal changement de mot de passe */}
+			{showPasswordModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowPasswordModal(false)}>
+					<div className="bg-white rounded-lg p-6 w-96 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+						<h3 className="text-xl font-semibold mb-4">Changer le mot de passe</h3>
+						<div className="space-y-3">
+							<div>
+								<label className="block text-sm mb-1">Mot de passe actuel</label>
+								<input
+									type="password"
+									className="w-full border rounded px-3 py-2"
+									value={passwordForm.oldPassword}
+									onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Nouveau mot de passe</label>
+								<input
+									type="password"
+									className="w-full border rounded px-3 py-2"
+									value={passwordForm.newPassword}
+									onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+								/>
+							</div>
+							<div>
+								<label className="block text-sm mb-1">Confirmer le nouveau mot de passe</label>
+								<input
+									type="password"
+									className="w-full border rounded px-3 py-2"
+									value={passwordForm.confirmPassword}
+									onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+								/>
+							</div>
+						</div>
+						<div className="flex gap-3 mt-6">
+							<button
+								onClick={() => { setShowPasswordModal(false); setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' }); }}
+								className="flex-1 px-4 py-2 border rounded hover:bg-gray-50"
+							>
+								Annuler
+							</button>
+							<button
+								onClick={changePassword}
+								disabled={changingPassword}
+								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
+							>
+								{changingPassword ? 'Modification...' : 'Confirmer'}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

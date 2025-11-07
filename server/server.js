@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import webpush from "web-push";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import connectMongo from "./config/mongo.js";
 import ordersModule from "./routes/orders.js";
 import Subscription from "./models/Subscription.js";
@@ -10,6 +13,9 @@ import FcmToken from "./models/FcmToken.js";
 import { initFirebaseAdmin } from "./config/firebase.js";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Tarifs par défaut (modifiable via endpoint /api/pricing)
 const defaultPricing = {
@@ -61,6 +67,45 @@ async function main() {
 			return res.json({ token });
 		}
 		return res.status(401).json({ error: 'invalid_credentials' });
+	});
+
+	app.post('/api/admin/change-password', requireAdmin, (req, res) => {
+		try {
+			const { oldPassword, newPassword } = req.body || {};
+			if (!oldPassword || !newPassword) {
+				return res.status(400).json({ error: 'oldPassword et newPassword requis' });
+			}
+			
+			const expected = process.env.ADMIN_PASSWORD || 'admin';
+			if (oldPassword !== expected) {
+				return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+			}
+
+			if (newPassword.length < 4) {
+				return res.status(400).json({ error: 'Le nouveau mot de passe doit contenir au moins 4 caractères' });
+			}
+
+			// Lire le fichier .env
+			const envPath = path.join(__dirname, '.env');
+			let envContent = fs.readFileSync(envPath, 'utf8');
+
+			// Remplacer le mot de passe
+			envContent = envContent.replace(
+				/ADMIN_PASSWORD=.*/,
+				`ADMIN_PASSWORD=${newPassword}`
+			);
+
+			// Écrire le fichier .env
+			fs.writeFileSync(envPath, envContent, 'utf8');
+
+			// Mettre à jour la variable d'environnement en mémoire
+			process.env.ADMIN_PASSWORD = newPassword;
+
+			return res.json({ success: true });
+		} catch (error) {
+			console.error('Erreur lors du changement de mot de passe:', error);
+			return res.status(500).json({ error: 'Erreur lors du changement de mot de passe' });
+		}
 	});
 
 	// Web Push setup
@@ -146,8 +191,8 @@ async function main() {
 		});
 	});
 
-	const port = process.env.PORT || 4000;
-	app.listen(port, () => console.log(`API PressinGo on :${port}`));
+	const port = process.env.PORT || 5000;
+	app.listen(port,'0.0.0.0', () => console.log(`API PressinGo on :${port}`));
 }
 
 main().catch((err) => {
