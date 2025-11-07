@@ -29,7 +29,9 @@ const defaultPricing = {
 	costume: { lavage: 1000, repassage: 800, lavage_repassage: 1500 },
 	jupe: { lavage: 400, repassage: 300, lavage_repassage: 650 },
 };
-
+const app = express();
+// Connexion à MongoDB
+connectMongo();
 const state = {
 	pricing: defaultPricing,
 	deliveryFee: 1000,
@@ -199,5 +201,11 @@ main().catch((err) => {
 	console.error(err);
 	process.exit(1);
 });
+// Routes ici
+app.get("/", (req, res) => {
+  res.send("API Pressingo connectée à MongoDB ✅");
+});
 
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Serveur lancé sur le port ${PORT}`));
 
