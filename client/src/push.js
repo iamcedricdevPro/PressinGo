@@ -1,9 +1,11 @@
+import API_URL from './api.js';
+
 export async function subscribeUserToPush(phone) {
 	if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
 	try {
 		const reg = await navigator.serviceWorker.ready;
 		const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY || '') });
-		await fetch('/api/push/subscribe', {
+		await fetch(`${API_URL}/api/push/subscribe`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ phone, subscription: sub }),

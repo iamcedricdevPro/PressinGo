@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import GarmentTable from '../components/GarmentTable.jsx';
+import API_URL from '../api.js';
 
 const SERVICE_TYPES = [
 	{ key: 'lavage', label: 'Lavage' },
@@ -39,7 +40,7 @@ export default function OrderForm() {
 	const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
 
 	useEffect(() => {
-		fetch('/api/pricing')
+		fetch(`${API_URL}/api/pricing`)
 			.then((r) => (r.ok ? r.json() : null))
 			.then((data) => {
 				if (data && data.pricing) setPricing(data.pricing);
@@ -80,7 +81,7 @@ export default function OrderForm() {
 				address,
 				clientTotal: calc ? calc.total : null,
 			};
-			await fetch('/api/orders', {
+			await fetch(`${API_URL}/api/orders`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(body),

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { initFirebaseMessaging, getFcmToken } from '../firebase';
+import API_URL from '../api.js';
 
 export default function Settings() {
 	const [phone, setPhone] = useState('');
@@ -14,7 +15,7 @@ export default function Settings() {
 				setStatus("Impossible d'obtenir le token FCM");
 				return;
 			}
-			await fetch('/api/fcm/subscribe', {
+			await fetch(`${API_URL}/api/fcm/subscribe`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ phone, token }),
@@ -28,7 +29,7 @@ export default function Settings() {
 	const disablePush = async () => {
 		try {
 			const qs = new URLSearchParams(phone ? { phone } : {});
-			await fetch(`/api/fcm/subscribe?${qs.toString()}`, { method: 'DELETE' });
+			await fetch(`${API_URL}/api/fcm/subscribe?${qs.toString()}`, { method: 'DELETE' });
 			setStatus('Notifications désactivées');
 		} catch {
 			setStatus('Erreur lors de la désactivation');

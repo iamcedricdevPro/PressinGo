@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { initFirebaseMessaging, getFcmToken, onForegroundMessage } from '../firebase';
+import API_URL from '../api.js';
 
 function useSSE(phone, onEvent) {
 	const ref = useRef(null);
 	useEffect(() => {
 		if (!phone) return;
-		const url = `/api/stream?phone=${encodeURIComponent(phone)}`;
+		const url = `${API_URL}/api/stream?phone=${encodeURIComponent(phone)}`;
 		const es = new EventSource(url);
 		es.addEventListener('update', (e) => {
 			try { onEvent && onEvent(JSON.parse(e.data)); } catch {}
@@ -38,7 +39,7 @@ export default function History() {
 		if (!phone) return;
 		setLoading(true);
 		try {
-			const r = await fetch(`/api/orders/history?phone=${encodeURIComponent(phone)}`);
+			const r = await fetch(`${API_URL}/api/orders/history?phone=${encodeURIComponent(phone)}`);
 			const data = await r.json();
 			setOrders(data);
 			if (Notification && Notification.permission === 'default') {
@@ -49,7 +50,7 @@ export default function History() {
 			const token = await getFcmToken(import.meta.env.VITE_FIREBASE_VAPID_KEY);
 			if (token) {
 				console.log('FCM token:', token);
-				await fetch('/api/fcm/subscribe', {
+				await fetch(`${API_URL}/api/fcm/subscribe`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ phone, token }),

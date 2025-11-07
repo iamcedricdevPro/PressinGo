@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useToast } from '../components/Toast.jsx';
+import API_URL from '../api.js';
 
 const STATUS = ['En attente', 'En cours', 'Terminé', 'Livré'];
 
@@ -24,12 +25,12 @@ export default function AdminDashboard() {
 
 	useEffect(() => {
 		if (!authed) return;
-		fetch('/api/orders', { headers: { Authorization: `Bearer ${token}` } })
+		fetch(`${API_URL}/api/orders`, { headers: { Authorization: `Bearer ${token}` } })
 			.then((r) => r.json())
 			.then(setOrders)
 			.catch(() => {});
 
-		fetch('/api/pricing')
+		fetch(`${API_URL}/api/pricing`)
 			.then((r) => r.json())
 			.then((data) => {
 				setPricing(data.pricing);
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
 	};
 
 	const updateStatus = async (id, status) => {
-        await fetch(`/api/orders/${id}`, {
+        await fetch(`${API_URL}/api/orders/${id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
 			body: JSON.stringify({ status }),
@@ -83,13 +84,13 @@ export default function AdminDashboard() {
 
 	const removeOrder = async (id) => {
 		if (!confirm('Supprimer cette commande ?')) return;
-        await fetch(`/api/orders/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        await fetch(`${API_URL}/api/orders/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
 		setOrders((prev) => prev.filter((o) => o._id !== id));
         toast?.success('Commande supprimée');
 	};
 
 	const updateEstimatedDate = async (id, dateStr) => {
-		await fetch(`/api/orders/${id}`, {
+		await fetch(`${API_URL}/api/orders/${id}`, {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ estimatedReadyDate: dateStr ? new Date(dateStr).toISOString() : null }),
@@ -129,7 +130,7 @@ export default function AdminDashboard() {
 	const savePricing = async () => {
 		setSavingPricing(true);
 		try {
-        await fetch('/api/pricing', {
+        await fetch(`${API_URL}/api/pricing`, {
 				method: 'PUT',
 			headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
 				body: JSON.stringify({ pricing, deliveryFee }),
@@ -153,7 +154,7 @@ export default function AdminDashboard() {
 		}
 		setChangingPassword(true);
 		try {
-			const res = await fetch('/api/admin/change-password', {
+			const res = await fetch(`${API_URL}/api/admin/change-password`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
 				body: JSON.stringify({
@@ -180,7 +181,7 @@ export default function AdminDashboard() {
 		let pwd = '';
 		const doLogin = async () => {
 			if (!pwd) return;
-			const res = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
+			const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
             if (res.ok) {
 				const data = await res.json();
 				sessionStorage.setItem('admin_token', data.token);
@@ -297,7 +298,7 @@ export default function AdminDashboard() {
 								</td>
                                 <td className="px-4 py-3">{new Date(o.createdAt).toLocaleString()}</td>
                                 <td className="px-4 py-3 space-x-3">
-                                    <a href={`/api/orders/${o._id}/ticket`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Ticket PDF</a>
+                                    <a href={`${API_URL}/api/orders/${o._id}/ticket`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Ticket PDF</a>
                                     <button onClick={() => removeOrder(o._id)} className="text-red-600 hover:underline">Supprimer</button>
                                 </td>
 							</tr>
